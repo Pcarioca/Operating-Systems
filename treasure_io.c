@@ -11,7 +11,7 @@
 void log_operation(const char *hunt_id, const char *operation) {
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", hunt_id, LOG_FILE);
-    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0777);
     if (fd == -1) { perror("Log open failed"); return; }
 
     dprintf(fd, "%s: %s\n", __TIME__, operation);
@@ -23,7 +23,7 @@ int add_treasure(const char *hunt_id) {
 
     char path[128];
     snprintf(path, sizeof(path), "%s/%s", hunt_id, TREASURE_FILE);
-    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0777);
     if (fd == -1) { perror("Open treasure file"); return 1; }
 
     Treasure t;
@@ -99,7 +99,7 @@ int remove_treasure(const char *hunt_id, int id) {
     snprintf(temp_path, sizeof(temp_path), "%s/temp.dat", hunt_id);
 
     int fd_in = open(path, O_RDONLY);
-    int fd_out = open(temp_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int fd_out = open(temp_path, O_WRONLY | O_CREAT | O_TRUNC, 0777);
     if (fd_in == -1 || fd_out == -1) { perror("Open"); return 1; }
 
     Treasure t;
