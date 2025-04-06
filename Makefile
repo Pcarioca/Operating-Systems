@@ -11,5 +11,6 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
+# in caz ca vreau sa rulez make clean
 clean:
 	rm -f *.o $(TARGET)
