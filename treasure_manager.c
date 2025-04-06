@@ -19,6 +19,6 @@ int main(int argc, char *argv[]) {
     else if (strcmp(cmd, "--remove_hunt") == 0) return remove_hunt(hunt_id);
     else {
         fprintf(stderr, "Unknown or badly used command.\n");
-        return 1;
+        return -1;
     }
 }
