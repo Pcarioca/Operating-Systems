@@ -55,7 +55,7 @@ int list_treasures(const char *hunt_id) {
     if (stat(path, &st) == -1) { perror("Stat failed"); return 1; }
 
     printf("Hunt: %s\nSize: %ld bytes\nLast modified: %s",
-           hunt_id, st.st_size, ctime(&st.st_mtime));
+           hunt_id, st.st_size, ctime(&st.st_mtime)); // this will print metadata on the screen!!!!
 
     int fd = open(path, O_RDONLY);
     if (fd == -1) { perror("Open failed"); return 1; }

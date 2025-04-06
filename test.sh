@@ -1,19 +1,22 @@
 #!/bin/bash
 
-# Clean previous runs
+#sterge ultimul test
 rm -rf game_test logged_hunt-game_test
 mkdir -p build
 
 echo " Testing treasure_manager Phase 1"
 
-echo -e "1\nalice\n45.76\n21.23\nUnder the old oak tree\n100" | build/treasure_manager --add game_test
+echo -e "1\nAndrei\n45.76\n21.23\nSub copac\n100" | build/treasure_manager --add game_test
 
 
-echo -e "2\nbob\n40.42\n23.65\nBehind the waterfall\n250" | build/treasure_manager --add game_test
+echo -e "2\nPaul\n40.42\n23.65\nBDupa cascada\n250" | build/treasure_manager --add game_test
 
 
 echo -e "\n List all treasures:"
 build/treasure_manager --list game_test
+
+echo -e "\n Put all treasures in file exported_treasures.txt:"
+build/treasure_manager --list game_test > exported_treasures.txt
 
 
 echo -e "\n View treasure ID 1:"
