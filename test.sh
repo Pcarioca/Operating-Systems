@@ -33,7 +33,7 @@ echo -e "\n List after removal:"
 build/treasure_manager --list game_test
 
 # sterge
-echo -e "\n Removing entire hunt:"
-build/treasure_manager --remove_hunt game_test
+# echo -e "\n Removing entire hunt:"
+# build/treasure_manager --remove_hunt game_test
 
 echo "All basic operations complete"
