@@ -1,5 +1,5 @@
 Hunt: game_test
 Size: 352 bytes
-Last modified: Tue Apr  8 09:03:10 2025
+Last modified: Mon Apr 28 19:55:59 2025
 ID: 1 | User: Andrei | GPS: (45.760, 21.230) | Clue: Sub copac | Value: 100
 ID: 2 | User: Paul | GPS: (40.420, 23.650) | Clue: După cascada | Value: 250

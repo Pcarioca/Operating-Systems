@@ -1,39 +1,42 @@
 #!/bin/bash
 
-# sterge orice test anterior
+# --- Phase 1 automated smoke tests ---
 rm -rf game_test logged_hunt-game_test
 mkdir -p build
+make
 
-echo " Testing treasure_manager Phase 1"
+echo "=== Phase 1: add a treasure ==="
+./build/treasure_manager --add game_test <<EOF
+1
+Andrei
+45.76
+21.23
+Sub copac
+100
+EOF
 
-# Adaug comoara 1
-echo -e "1\nAndrei\n45.76\n21.23\nSub copac\n100" | build/treasure_manager --add game_test
+echo
+echo "=== Phase 1: list treasures ==="
+./build/treasure_manager --list game_test
 
-# Adaug comoara 2
-echo -e "2\nPaul\n40.42\n23.65\nDupă cascada\n250" | build/treasure_manager --add game_test
+echo
+echo "=== Phase 1: view treasure ID 1 ==="
+./build/treasure_manager --view game_test 1
 
-# Afiez toate comorile
-echo -e "\n List all treasures:"
-build/treasure_manager --list game_test
+# echo
+# echo "=== Phase 1: remove treasure ID 1 ==="
+# ./build/treasure_manager --remove game_test 1
 
-# Salvez toate comorile intr-un fis
-echo -e "\n Put all treasures in file exported_treasures.txt:"
-build/treasure_manager --list game_test > exported_treasures.txt
+# echo
+# echo "=== Phase 1: list after removal ==="
+# ./build/treasure_manager --list game_test
 
-# Vizualizez comoara cu ID 1
-echo -e "\n View treasure ID 1:"
-build/treasure_manager --view game_test 1
-
-# Elimin comoara cu ID 1
-echo -e "\nRemove treasure ID 1:"
-build/treasure_manager --remove game_test 1
-
-# Afisez comorile după stergere
-echo -e "\n List after removal:"
-build/treasure_manager --list game_test
-
-# sterge
-# echo -e "\n Removing entire hunt:"
-# build/treasure_manager --remove_hunt game_test
-
-echo "All basic operations complete"
+# --- Phase 2 manual tests ---
+echo
+echo "Now you can exercise Phase 2 by running ./treasure_hub and using:"
+echo "  start_monitor"
+echo "  list_hunts"
+echo "  list_treasures game_test"
+echo "  view_treasure game_test 2"
+echo "  stop_monitor"
+echo "  exit"

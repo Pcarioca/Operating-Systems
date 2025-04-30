@@ -1,16 +1,26 @@
-CC = gcc
-CFLAGS = -Wall -g
-TARGET = build/treasure_manager
-OBJS = treasure_manager.o treasure_io.o
+CC       := gcc
+CFLAGS   := -Wall -g
+BUILD_DIR := build
 
-all: $(TARGET)
+# targets
+MANAGER  := $(BUILD_DIR)/treasure_manager
+HUB      := treasure_hub
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+.PHONY: all clean
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
+all: $(BUILD_DIR) $(MANAGER) $(HUB)
 
-# in caz ca vreau sa rulez make clean
+# create the build directory if missing
+$(BUILD_DIR):
+	mkdir -p $@
+
+# Phase 1: manager in build/
+$(MANAGER): treasure_manager.c treasure_io.c treasure_io.h | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $@ treasure_manager.c treasure_io.c
+
+# Phase 2: hub in project root
+$(HUB): treasure_hub.c
+	$(CC) $(CFLAGS) -o $@ treasure_hub.c
+
 clean:
-	rm -f *.o $(TARGET)
+	rm -rf $(BUILD_DIR) $(HUB) exported_treasures.txt game_test logged_hunt-* *.dat hub_cmd.txt
