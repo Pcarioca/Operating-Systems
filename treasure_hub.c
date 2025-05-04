@@ -1,3 +1,4 @@
+// treasure_hub.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +13,7 @@
 static pid_t monitor_pid = 0;
 static const char *CMD_FILE = "hub_cmd.txt";
 
-// helper to scan “./” for all hunt dirs and print counts
+// Hub-side: scan "." for hunt directories and print counts
 static void print_hunts(void) {
     DIR *dp = opendir(".");
     if (!dp) { perror("opendir"); return; }
@@ -36,12 +37,12 @@ static void print_hunts(void) {
     closedir(dp);
 }
 
-// Called in the monitor on SIGUSR1 for list_treasures / view_treasure
-static void cmd_handler(int sig) {
-    char buf[256] = {0};
+// Monitor-side: handle SIGUSR1 for list_treasures / view_treasure
+static void monitor_handler(int sig) {
+    char buf[512] = {0};
     int fd = open(CMD_FILE, O_RDONLY);
     if (fd < 0) return;
-    int n = read(fd, buf, sizeof(buf)-1);
+    ssize_t n = read(fd, buf, sizeof(buf)-1);
     close(fd);
     if (n <= 0) return;
     buf[n] = '\0';
@@ -52,26 +53,31 @@ static void cmd_handler(int sig) {
     pid_t c = fork();
     if (c < 0) return;
     if (c == 0) {
-        // child => dispatch to build/treasure_manager
+        // child: dispatch to build/treasure_manager
         if (strcmp(cmd, "list_treasures") == 0) {
             char *hunt = strtok(NULL, " \n");
-            execl("./build/treasure_manager",
-                  "treasure_manager", "--list", hunt,
-                  (char*)NULL);
+            if (hunt)
+                execl("./build/treasure_manager",
+                      "treasure_manager", "--list", hunt,
+                      (char*)NULL);
         }
         else if (strcmp(cmd, "view_treasure") == 0) {
             char *hunt = strtok(NULL, " \n");
             char *id   = strtok(NULL, " \n");
-            execl("./build/treasure_manager",
-                  "treasure_manager", "--view",
-                  hunt, id, (char*)NULL);
+            if (hunt && id)
+                execl("./build/treasure_manager",
+                      "treasure_manager", "--view",
+                      hunt, id, (char*)NULL);
         }
-        _exit(1);  // unknown
+        _exit(1);
     }
     waitpid(c, NULL, 0);
+
+    // signal hub that we're done
+    unlink(CMD_FILE);
 }
 
-// reap the monitor itself when it dies
+// Hub-side: reap the monitor if it dies
 static void handle_sigchld(int sig) {
     int status;
     pid_t p = waitpid(monitor_pid, &status, WNOHANG);
@@ -83,7 +89,7 @@ static void handle_sigchld(int sig) {
     }
 }
 
-// start the long‐lived monitor process
+// Hub-side: start the background monitor process
 static void start_monitor(void) {
     if (monitor_pid) {
         printf("Monitor already running.\n");
@@ -94,63 +100,92 @@ static void start_monitor(void) {
     if (p == 0) {
         // monitor child
         struct sigaction sa = {0};
-        sa.sa_handler = cmd_handler;
+        sa.sa_handler = monitor_handler;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGUSR1, &sa, NULL);
         signal(SIGCHLD, SIG_DFL);
-        while (1) pause();   // wait for signals
+        // live until killed by SIGTERM
+        while (1) pause();
         _exit(0);
     }
     // hub parent
     monitor_pid = p;
     signal(SIGCHLD, handle_sigchld);
-    printf("[Hub] Monitor started (PID %d)\n", monitor_pid);
+    printf("[Hub] Monitor started (PID %d)\n", (int)p);
 }
 
 int main(void) {
-    char line[256];
+    char line[512];
     printf("[Hub] Ready> ");
+    fflush(stdout);
+
     while (fgets(line, sizeof(line), stdin)) {
-        if (strncmp(line, "start_monitor", 13) == 0) {
+        // strip newline
+        line[strcspn(line, "\n")] = '\0';
+        // parse
+        char *saveptr;
+        char *cmd = strtok_r(line, " ", &saveptr);
+        if (!cmd) {
+            printf("[Hub] Ready> ");
+            fflush(stdout);
+            continue;
+        }
+
+        if (strcmp(cmd, "start_monitor") == 0) {
             start_monitor();
         }
-        else if (strncmp(line, "stop_monitor", 12) == 0) {
+        else if (strcmp(cmd, "stop_monitor") == 0) {
             if (monitor_pid)
                 kill(monitor_pid, SIGTERM);
             else
                 printf("No monitor running.\n");
         }
-        else if (strncmp(line, "list_hunts", 10) == 0) {
+        else if (strcmp(cmd, "exit") == 0) {
+            if (monitor_pid)
+                printf("Stop monitor first.\n");
+            else
+                break;
+        }
+        else if (strcmp(cmd, "list_hunts") == 0) {
             if (!monitor_pid)
                 printf("Start monitor first.\n");
             else
                 print_hunts();
         }
-        else if (strncmp(line, "view_treasure", 13) == 0
-              || strncmp(line, "list_treasures", 15) == 0)
+        else if (strcmp(cmd, "list_treasures") == 0
+              || strcmp(cmd, "view_treasure") == 0)
         {
             if (!monitor_pid) {
                 printf("Start monitor first.\n");
             } else {
+                // rebuild full command
+                char fullcmd[512];
+                if (saveptr)
+                    snprintf(fullcmd, sizeof(fullcmd),
+                             "%s %s", cmd, saveptr);
+                else
+                    snprintf(fullcmd, sizeof(fullcmd),
+                             "%s", cmd);
+                // write it
                 int fd = open(CMD_FILE,
                               O_WRONLY|O_CREAT|O_TRUNC, 0644);
                 if (fd >= 0) {
-                    write(fd, line, strlen(line));
+                    dprintf(fd, "%s\n", fullcmd);
                     close(fd);
                     kill(monitor_pid, SIGUSR1);
+                    // wait for monitor to finish
+                    while (access(CMD_FILE, F_OK) == 0)
+                        usleep(10000);
                 }
             }
         }
-        else if (strncmp(line, "exit", 4) == 0) {
-            if (monitor_pid) 
-                printf("Stop monitor first.\n");
-            else
-                break;
-        }
         else {
-            printf("Unknown command or start monitor first.\n");
+            printf("Unknown command.\n");
         }
+
         printf("[Hub] Ready> ");
+        fflush(stdout);
     }
+
     return 0;
 }

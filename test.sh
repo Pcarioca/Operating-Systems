@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# --- Phase 1 automated smoke tests ---
+# --- Phase 1 automated tests ---
 rm -rf game_test logged_hunt-game_test
 mkdir -p build
 make
@@ -37,6 +37,5 @@ echo "Now you can exercise Phase 2 by running ./treasure_hub and using:"
 echo "  start_monitor"
 echo "  list_hunts"
 echo "  list_treasures game_test"
-echo "  view_treasure game_test 2"
 echo "  stop_monitor"
 echo "  exit"
