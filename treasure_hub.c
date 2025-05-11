@@ -128,7 +128,7 @@ int main(void) {
         if (!cmd) {
             printf("[Hub] Ready> ");
             fflush(stdout);
-            continue;
+                 continue;
         }
 
         if (strcmp(cmd, "start_monitor") == 0) {
@@ -175,7 +175,7 @@ int main(void) {
                     kill(monitor_pid, SIGUSR1);
                     // wait for monitor to finish
                     while (access(CMD_FILE, F_OK) == 0)
-                        usleep(10000);
+                         usleep(10000);
                 }
             }
         }

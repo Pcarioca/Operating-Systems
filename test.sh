@@ -32,6 +32,7 @@ echo "=== Phase 1: view treasure ID 1 ==="
 # ./build/treasure_manager --list game_test
 
 # --- Phase 2 manual tests ---
+
 echo
 echo "Now you can exercise Phase 2 by running ./treasure_hub and using:"
 echo "  start_monitor"
