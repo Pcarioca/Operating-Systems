@@ -206,5 +206,3 @@ make clean
 Removes `build/`, all generated binaries, `.dat` files, and logs.
 
 ---
-
-> Happy hunting! 🎉
