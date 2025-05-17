@@ -1,26 +1,35 @@
+# Makefile for Operating-Systems Phase 3
+
 CC       := gcc
 CFLAGS   := -Wall -g
-BUILD_DIR := build
-
-# targets
-MANAGER  := $(BUILD_DIR)/treasure_manager
-HUB      := treasure_hub
 
 .PHONY: all clean
 
-all: $(BUILD_DIR) $(MANAGER) $(HUB)
+# Default target: build everything
+all: build/calculate_score build/treasure_manager treasure_hub
 
-# create the build directory if missing
-$(BUILD_DIR):
-	mkdir -p $@
+# Ensure build directory exists
+build:
+	mkdir -p build
 
-# Phase 1: manager in build/
-$(MANAGER): treasure_manager.c treasure_io.c treasure_io.h | $(BUILD_DIR)
+# Build calculate_score (link treasure_io.c)
+build/calculate_score: calculate_score.c treasure_io.h treasure_io.c | build
+	$(CC) $(CFLAGS) -o $@ calculate_score.c treasure_io.c
+
+# Build treasure_manager (link treasure_io.c)
+build/treasure_manager: treasure_manager.c treasure_io.h treasure_io.c | build
 	$(CC) $(CFLAGS) -o $@ treasure_manager.c treasure_io.c
 
-# Phase 2: hub in project root
-$(HUB): treasure_hub.c
+# Build the hub executable
+treasure_hub: treasure_hub.c | build
 	$(CC) $(CFLAGS) -o $@ treasure_hub.c
 
+# Clean up all generated files
 clean:
-	rm -rf $(BUILD_DIR) $(HUB) exported_treasures.txt game_test logged_hunt-* *.dat hub_cmd.txt
+	rm -rf build \
+	       treasure_hub \
+	       exported_treasures.txt \
+	       game_test \
+	       logged_hunt-* \
+	       *.dat \
+	       hub_cmd.txt
